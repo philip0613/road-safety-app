@@ -215,7 +215,7 @@ function App() {
   return (
     <div className="min-h-screen bg-gray-50 p-4 md:p-8">
       <header className="mb-8">
-        <h1 className="text-3xl font-bold text-gray-900">안전 제보 시스템</h1>
+        <h1 className="text-3xl font-bold text-gray-900">road-safety-app</h1>
         <p className="text-gray-600">주변의 위험 요소를 제보하고 안전한 길을 찾으세요.</p>
       </header>
 

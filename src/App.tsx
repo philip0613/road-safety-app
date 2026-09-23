@@ -106,14 +106,8 @@ function App() {
   }, []);
   const [analysisResult, setAnalysisResult] = useState<{type: string, severity: string, description: string} | null>(null);
   const [isRecording, setIsRecording] = useState(false);
-  const [rewardPoints, setRewardPoints] = useState(150);
-  const [selectedProblem, setSelectedProblem] = useState<Problem | null>(null);
-  const [staticMapUrl, setStaticMapUrl] = useState<string | null>(null);
+  const [rewardPoints] = useState(150);
   const [route, setRoute] = useState<[number, number][]>([]);
-
-  const fetchStaticMap = async (lat: number, lng: number) => {
-    setStaticMapUrl(`http://localhost:3001/api/static-map?lat=${lat}&lng=${lng}`);
-  };
 
   const fetchRoute = async (start: {lat: number, lng: number}, end: {lat: number, lng: number}) => {
     try {

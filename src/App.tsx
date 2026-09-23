@@ -55,7 +55,7 @@ function App() {
   const [reportLocation, setReportLocation] = useState<{lat: number, lng: number} | null>(null);
   const [startLocation, setStartLocation] = useState<{lat: number, lng: number} | null>(null);
   const [endLocation, setEndLocation] = useState<{lat: number, lng: number} | null>(null);
-  const [mode, setMode] = useState<'report' | 'start' | 'end'>('report');
+  const [mode] = useState<'report' | 'start' | 'end'>('report');
   const [startQuery, setStartQuery] = useState('');
   const [endQuery, setEndQuery] = useState('');
   const [startResults, setStartResults] = useState<any[]>([]);
@@ -153,8 +153,7 @@ function App() {
   };
 
   const handleProblemClick = (problem: Problem) => {
-    setSelectedProblem(problem);
-    fetchStaticMap(problem.lat, problem.lng);
+    console.log('Problem clicked:', problem);
   };
 
   const handleMapClick = (lat: number, lng: number) => {

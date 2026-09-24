@@ -132,12 +132,15 @@ app.post('/api/analyze-image', async (req, res) => {
       return res.status(500).json({ error: 'API 키가 설정되지 않았습니다.' });
     }
 
-    const response = await axios.post(`https://generativelanguage.googleapis.com/v1beta/models/gemini-3.6-flash:generateContent?key=${process.env.GEMINI_API_KEY}`, payload, {
+    const response = await axios.post(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${process.env.GEMINI_API_KEY}`, payload, {
       headers: {
         'Content-Type': 'application/json'
       }
     });
     
+    if (!response.data.candidates || response.data.candidates.length === 0) {
+      throw new Error('Gemini API에서 올바른 응답을 받지 못했습니다.');
+    }
     const content = response.data.candidates[0].content.parts[0].text;
     const jsonMatch = content.match(/\{[\s\S]*\}/);
     const result = jsonMatch ? JSON.parse(jsonMatch[0]) : { severity: 'green', description: '분석된 내용이 없습니다.' };

@@ -109,11 +109,18 @@ app.get('/api/search', async (req, res) => {
 
 app.post('/api/analyze-image', async (req, res) => {
   try {
+    // 1. 요청 데이터 검증
     const { imageBase64 } = req.body;
     if (!imageBase64) {
       return res.status(400).json({ error: '이미지 데이터가 없습니다.' });
     }
     
+    // 2. 환경 변수 검증
+    if (!process.env.GEMINI_API_KEY) {
+      console.error('CRITICAL: GEMINI_API_KEY is missing');
+      return res.status(500).json({ error: '서버 설정 오류 (API KEY)' });
+    }
+
     const payload = {
       contents: [{
         parts: [
@@ -128,32 +135,36 @@ app.post('/api/analyze-image', async (req, res) => {
       }]
     };
 
-    if (!process.env.GEMINI_API_KEY) {
-      return res.status(500).json({ error: 'API 키가 설정되지 않았습니다.' });
-    }
-
-    const response = await axios.post(`https://generativelanguage.googleapis.com/v1beta/models/gemini-3.6-flash:generateContent?key=${process.env.GEMINI_API_KEY}`, payload, {
-      headers: {
-        'Content-Type': 'application/json'
-      }
-    });
+    console.log('Sending request to Gemini...');
     
-    const content = response.data.candidates[0].content.parts[0].text;
-    console.log('Gemini Raw Content:', content); // 디버깅용 로그 추가
-
-    const jsonMatch = content.match(/\{[\s\S]*\}/);
-    let result;
-    try {
-      result = jsonMatch ? JSON.parse(jsonMatch[0]) : { severity: 'green', description: '분석된 내용이 없습니다.' };
-    } catch (e) {
-      console.error('JSON Parsing Error:', e);
-      result = { severity: 'green', description: 'AI 응답을 처리할 수 없습니다.' };
+    // 3. API 호출
+    const response = await axios.post(
+      `https://generativelanguage.googleapis.com/v1beta/models/gemini-3.6-flash:generateContent?key=${process.env.GEMINI_API_KEY}`, 
+      payload, 
+      { headers: { 'Content-Type': 'application/json' } }
+    );
+    
+    // 4. 응답 구조 확인 및 안전하게 파싱
+    const text = response.data?.candidates?.[0]?.content?.parts?.[0]?.text;
+    if (!text) {
+        throw new Error('API 응답 구조가 올바르지 않습니다.');
     }
     
-    res.json(result);
+    console.log('Gemini Raw Content:', text); 
+
+    const jsonMatch = text.match(/\{[\s\S]*\}/);
+    if (!jsonMatch) {
+        throw new Error('AI 응답에서 JSON을 찾을 수 없습니다.');
+    }
+    
+    const result = JSON.parse(jsonMatch[0]);
+    return res.json(result);
+
   } catch (error) {
-    console.error('Error analyzing image:', error); // 에러 전체 로깅
-    res.status(500).json({ 
+    // 5. 서버 내부 오류를 무조건 JSON으로 반환하여 프론트엔드 파싱 오류 방지
+    console.error('Error analyzing image:', error.response?.data || error.message);
+    
+    return res.status(500).json({ 
       error: 'AI 분석 실패', 
       details: error.response?.data?.error?.message || error.message || '알 수 없는 오류'
     });

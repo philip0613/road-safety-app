@@ -49,6 +49,8 @@ function MapUpdater({ route }: { route: [number, number][] }) {
   return null;
 }
 
+const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:3001';
+
 function App() {
   const [problems, setProblems] = useState<Problem[]>([]);
   const [isAnalyzing, setIsAnalyzing] = useState(false);

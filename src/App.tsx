@@ -245,7 +245,8 @@ function App() {
           </MapContainer>
         </div>
 
-        <div className="space-y-6">
+        {/* Controls Section - Mobile: Bottom Scrollable, Desktop: Right Sidebar */}
+        <div className="w-full lg:w-1/3 overflow-y-auto p-4 md:p-6 space-y-6 bg-gray-50 lg:bg-white lg:border-l border-gray-200">
           <motion.div 
             whileHover={{ scale: 1.01 }}
             className="bg-white p-6 rounded-2xl shadow-lg border border-gray-100"

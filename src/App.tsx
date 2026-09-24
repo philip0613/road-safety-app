@@ -206,23 +206,35 @@ function App() {
             body: JSON.stringify({ imageBase64: base64String })
           });
 
-          const contentType = response.headers.get("content-type");
-          if (contentType && contentType.indexOf("application/json") !== -1) {
-            const data = await response.json();
-            if (!response.ok) {
-              throw new Error(data.error + (data.details ? ': ' + data.details : ''));
-            }
-            setAnalysisResult({
-              type: '제보',
-              severity: data.severity || 'yellow',
-              description: data.description || '분석된 내용이 없습니다.'
-            });
-          } else {
-            // JSON이 아닌 경우 (HTML 에러 페이지 등)
-            const text = await response.text();
-            console.error('API Error Response (not JSON):', text);
+          // 서버 응답이 있는지 먼저 확인
+          if (!response) {
+            throw new Error('서버로부터 응답이 없습니다.');
+          }
+
+          // 응답 텍스트를 먼저 읽음 (HTML일 수도, JSON일 수도 있음)
+          const responseText = await response.text();
+          console.log('API Raw Response:', responseText);
+
+          let data;
+          try {
+            // JSON으로 파싱 시도
+            data = JSON.parse(responseText);
+          } catch (e) {
+            // JSON 파싱 실패 시: HTML 에러 페이지인 경우
+            console.error('API Error Response (not JSON):', responseText);
             throw new Error(`서버 오류가 발생했습니다. (상태 코드: ${response.status})`);
           }
+
+          // JSON으로 성공적으로 파싱된 경우
+          if (!response.ok) {
+            throw new Error(data.error + (data.details ? ': ' + data.details : ''));
+          }
+          
+          setAnalysisResult({
+            type: '제보',
+            severity: data.severity || 'yellow',
+            description: data.description || '분석된 내용이 없습니다.'
+          });
         } catch (error: any) {
           console.error('Error analyzing image:', error);
           alert('분석 중 오류가 발생했습니다: ' + error.message);

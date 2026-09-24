@@ -29,6 +29,9 @@ app.post('/api/reports', (req, res) => {
 
 app.get('/api/static-map', async (req, res) => {
   try {
+    if (!process.env.TMAP_APP_KEY) {
+      throw new Error('TMAP_APP_KEY is missing');
+    }
     const { lat, lng, zoom = 15 } = req.query;
     const response = await axios.get('https://apis.openapi.sk.com/tmap/staticMap', {
       params: {
@@ -58,6 +61,9 @@ app.get('/api/static-map', async (req, res) => {
 
 app.get('/api/route', async (req, res) => {
   try {
+    if (!process.env.TMAP_APP_KEY) {
+      throw new Error('TMAP_APP_KEY is missing');
+    }
     const { startLat, startLng, endLat, endLng } = req.query;
     
     const payload = {
@@ -92,6 +98,9 @@ app.get('/api/route', async (req, res) => {
 
 app.get('/api/search', async (req, res) => {
   try {
+    if (!process.env.TMAP_APP_KEY) {
+      throw new Error('TMAP_APP_KEY is missing');
+    }
     const { query } = req.query;
     const response = await axios.get('https://apis.openapi.sk.com/tmap/pois', {
       params: {

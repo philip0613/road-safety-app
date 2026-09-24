@@ -213,14 +213,13 @@ function App() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 p-4 md:p-8">
-      <header className="mb-8">
-        <h1 className="text-3xl font-bold text-gray-900">road-safety-app</h1>
-        <p className="text-gray-600">주변의 위험 요소를 제보하고 안전한 길을 찾으세요.</p>
+    <div className="h-full flex flex-col bg-gray-50">
+      <header className="p-4 bg-white border-b border-gray-200 shrink-0">
+        <h1 className="text-xl font-bold text-gray-900">road-safety-app</h1>
       </header>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-        <div className="lg:col-span-2 h-[600px] bg-white rounded-2xl shadow-xl overflow-hidden border border-gray-200">
+      <div className="flex-1 flex flex-col lg:flex-row overflow-hidden">
+        <div className="flex-1 h-1/2 lg:h-full bg-white border-b lg:border-b-0 lg:border-r border-gray-200 relative">
             <MapContainer center={[37.494, 126.826]} zoom={15} style={{ height: '100%', width: '100%' }}>
             <TileLayer 
               attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'

@@ -172,6 +172,11 @@ function App() {
 
   const handleUseCurrentLocation = () => {
     if (navigator.geolocation) {
+    if (file.size > 4 * 1024 * 1024) {
+      alert('이미지 크기가 너무 큽니다. 4MB 이하의 이미지를 사용해주세요.');
+      return;
+    }
+
       navigator.geolocation.getCurrentPosition((position) => {
         setReportLocation({ lat: position.coords.latitude, lng: position.coords.longitude });
       });
@@ -188,21 +193,36 @@ function App() {
       
       reader.onloadend = async () => {
         const base64String = (reader.result as string).split(',')[1];
+        if (file.size > 4 * 1024 * 1024) {
+          alert('이미지 크기가 너무 큽니다. 4MB 이하의 이미지를 사용해주세요.');
+          setIsAnalyzing(false);
+          return;
+        }
+
         try {
           const response = await fetch(`${API_BASE}/api/analyze-image`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ imageBase64: base64String })
           });
-          const data = await response.json();
-          if (!response.ok) {
-            throw new Error(data.error + (data.details ? ': ' + data.details : ''));
+
+          const contentType = response.headers.get("content-type");
+          if (contentType && contentType.indexOf("application/json") !== -1) {
+            const data = await response.json();
+            if (!response.ok) {
+              throw new Error(data.error + (data.details ? ': ' + data.details : ''));
+            }
+            setAnalysisResult({
+              type: '제보',
+              severity: data.severity || 'yellow',
+              description: data.description || '분석된 내용이 없습니다.'
+            });
+          } else {
+            // JSON이 아닌 경우 (HTML 에러 페이지 등)
+            const text = await response.text();
+            console.error('API Error Response (not JSON):', text);
+            throw new Error(`서버 오류가 발생했습니다. (상태 코드: ${response.status})`);
           }
-          setAnalysisResult({
-            type: '제보',
-            severity: data.severity || 'yellow',
-            description: data.description || '분석된 내용이 없습니다.'
-          });
         } catch (error: any) {
           console.error('Error analyzing image:', error);
           alert('분석 중 오류가 발생했습니다: ' + error.message);

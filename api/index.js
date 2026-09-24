@@ -1,6 +1,10 @@
-const express = require('express');
-const cors = require('cors');
-const axios = require('axios');
+import express from 'express';
+import cors from 'cors';
+import axios from 'axios';
+import dotenv from 'dotenv';
+
+dotenv.config();
+
 const app = express();
 
 app.use(cors());
@@ -109,13 +113,11 @@ app.get('/api/search', async (req, res) => {
 
 app.post('/api/analyze-image', async (req, res) => {
   try {
-    // 1. 요청 데이터 검증
     const { imageBase64 } = req.body;
     if (!imageBase64) {
       return res.status(400).json({ error: '이미지 데이터가 없습니다.' });
     }
     
-    // 2. 환경 변수 검증
     if (!process.env.GEMINI_API_KEY) {
       console.error('CRITICAL: GEMINI_API_KEY is missing');
       return res.status(500).json({ error: '서버 설정 오류 (API KEY)' });
@@ -135,23 +137,17 @@ app.post('/api/analyze-image', async (req, res) => {
       }]
     };
 
-    console.log('Sending request to Gemini...');
-    
-    // 3. API 호출
     const response = await axios.post(
-      `https://generativelanguage.googleapis.com/v1beta/models/gemini-3.6-flash:generateContent?key=${process.env.GEMINI_API_KEY}`, 
+      `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${process.env.GEMINI_API_KEY}`, 
       payload, 
       { headers: { 'Content-Type': 'application/json' } }
     );
     
-    // 4. 응답 구조 확인 및 안전하게 파싱
     const text = response.data?.candidates?.[0]?.content?.parts?.[0]?.text;
     if (!text) {
         throw new Error('API 응답 구조가 올바르지 않습니다.');
     }
     
-    console.log('Gemini Raw Content:', text); 
-
     const jsonMatch = text.match(/\{[\s\S]*\}/);
     if (!jsonMatch) {
         throw new Error('AI 응답에서 JSON을 찾을 수 없습니다.');
@@ -161,7 +157,6 @@ app.post('/api/analyze-image', async (req, res) => {
     return res.json(result);
 
   } catch (error) {
-    // 5. 서버 내부 오류를 무조건 JSON으로 반환하여 프론트엔드 파싱 오류 방지
     console.error('Error analyzing image:', error.response?.data || error.message);
     
     return res.status(500).json({ 
@@ -171,4 +166,4 @@ app.post('/api/analyze-image', async (req, res) => {
   }
 });
 
-module.exports = app;
+export default app;

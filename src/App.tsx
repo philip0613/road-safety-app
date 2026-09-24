@@ -172,11 +172,6 @@ function App() {
 
   const handleUseCurrentLocation = () => {
     if (navigator.geolocation) {
-    if (file.size > 4 * 1024 * 1024) {
-      alert('이미지 크기가 너무 큽니다. 4MB 이하의 이미지를 사용해주세요.');
-      return;
-    }
-
       navigator.geolocation.getCurrentPosition((position) => {
         setReportLocation({ lat: position.coords.latitude, lng: position.coords.longitude });
       });
@@ -187,18 +182,17 @@ function App() {
 
   const handleFileUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
     if (event.target.files && event.target.files[0]) {
-      setIsAnalyzing(true);
       const file = event.target.files[0];
-        const reader = new FileReader();
+      if (file.size > 4 * 1024 * 1024) {
+        alert('이미지 크기가 너무 큽니다. 4MB 이하의 이미지를 사용해주세요.');
+        return;
+      }
+
+      setIsAnalyzing(true);
+      const reader = new FileReader();
       
       reader.onloadend = async () => {
         const base64String = (reader.result as string).split(',')[1];
-        if (file.size > 4 * 1024 * 1024) {
-          alert('이미지 크기가 너무 큽니다. 4MB 이하의 이미지를 사용해주세요.');
-          setIsAnalyzing(false);
-          return;
-        }
-
         try {
           const response = await fetch(`${API_BASE}/api/analyze-image`, {
             method: 'POST',
@@ -206,26 +200,7 @@ function App() {
             body: JSON.stringify({ imageBase64: base64String })
           });
 
-          // 서버 응답이 있는지 먼저 확인
-          if (!response) {
-            throw new Error('서버로부터 응답이 없습니다.');
-          }
-
-          // 응답 텍스트를 먼저 읽음 (HTML일 수도, JSON일 수도 있음)
-          const responseText = await response.text();
-          console.log('API Raw Response:', responseText);
-
-          let data;
-          try {
-            // JSON으로 파싱 시도
-            data = JSON.parse(responseText);
-          } catch (e) {
-            // JSON 파싱 실패 시: HTML 에러 페이지인 경우
-            console.error('API Error Response (not JSON):', responseText);
-            throw new Error(`서버 오류가 발생했습니다. (상태 코드: ${response.status})`);
-          }
-
-          // JSON으로 성공적으로 파싱된 경우
+          const data = await response.json();
           if (!response.ok) {
             throw new Error(data.error + (data.details ? ': ' + data.details : ''));
           }
@@ -354,7 +329,7 @@ function App() {
                   type="text" 
                   placeholder="출발지 검색" 
                   value={startQuery}
-                  onChange={(e) => { setStartQuery(e.target.value); handleSearch(e.target.value, 'start'); }}
+                  onChange={(e) => setStartQuery(e.target.value)}
                   className="w-full p-2 border rounded-lg text-sm"
                 />
                 {startResults.length > 0 && (

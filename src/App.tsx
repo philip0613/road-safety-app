@@ -80,7 +80,7 @@ function App() {
   const handleSearch = async (query: string, type: 'start' | 'end') => {
     if (!query) return;
     try {
-      const response = await fetch(`http://localhost:3001/api/search?query=${encodeURIComponent(query)}`);
+      const response = await fetch(`${API_BASE}/api/search?query=${encodeURIComponent(query)}`);
       const data = await response.json();
       if (type === 'start') setStartResults(data.searchPoiInfo?.pois?.poi || []);
       else setEndResults(data.searchPoiInfo?.pois?.poi || []);
@@ -99,31 +99,21 @@ function App() {
   }, []);
 
   useEffect(() => {
-    fetch('http://localhost:3001/api/problems')
+    fetch(`${API_BASE}/api/problems`)
       .then(res => res.json())
       .then(data => setProblems(data))
       .catch(err => console.error('Error fetching problems:', err));
-  }, []);
+  }, [API_BASE]);
   const [analysisResult, setAnalysisResult] = useState<{type: string, severity: string, description: string} | null>(null);
   const [isRecording, setIsRecording] = useState(false);
   const [rewardPoints] = useState(150);
   const [route, setRoute] = useState<[number, number][]>([]);
-  const [isMobile, setIsMobile] = useState(window.innerWidth < 1024);
-  const [showMap, setShowMap] = useState(true);
-
-  const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:3001';
-
-  useEffect(() => {
-    const handleResize = () => setIsMobile(window.innerWidth < 1024);
-    window.addEventListener('resize', handleResize);
-    return () => window.removeEventListener('resize', handleResize);
-  }, []);
 
   const fetchRoute = async (start: {lat: number, lng: number}, end: {lat: number, lng: number}) => {
     try {
       console.log('Fetching route from:', start, 'to:', end);
       
-      const response = await fetch(`http://localhost:3001/api/route?startLat=${start.lat}&startLng=${start.lng}&endLat=${end.lat}&endLng=${end.lng}`);
+      const response = await fetch(`${API_BASE}/api/route?startLat=${start.lat}&startLng=${start.lng}&endLat=${end.lat}&endLng=${end.lng}`);
       const data = await response.json();
       console.log('Route data:', data);
       
@@ -192,12 +182,12 @@ function App() {
     if (event.target.files && event.target.files[0]) {
       setIsAnalyzing(true);
       const file = event.target.files[0];
-      const reader = new FileReader();
+        const reader = new FileReader();
       
       reader.onloadend = async () => {
         const base64String = (reader.result as string).split(',')[1];
         try {
-          const response = await fetch('http://localhost:3001/api/analyze-image', {
+          const response = await fetch(`${API_BASE}/api/analyze-image`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ imageBase64: base64String })
@@ -255,7 +245,7 @@ function App() {
         </div>
 
         {/* Controls Section - Mobile: Bottom Scrollable, Desktop: Right Sidebar */}
-        <div className={`w-full lg:w-1/3 overflow-y-auto p-4 md:p-6 space-y-6 bg-gray-50 lg:bg-white lg:border-l border-gray-200 ${isMobile && showMap ? 'hidden' : 'block'}`}>
+        <div className={`w-full lg:w-1/3 overflow-y-auto p-4 md:p-6 space-y-6 bg-gray-50 lg:bg-white lg:border-l border-gray-200`}>
           <motion.div 
             whileHover={{ scale: 1.01 }}
             className="bg-white p-6 rounded-2xl shadow-lg border border-gray-100"
